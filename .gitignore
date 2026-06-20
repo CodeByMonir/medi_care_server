@@ -1,0 +1,126 @@
+# ==========================================
+# Environment Variables & Secrets (CRITICAL)
+# ==========================================
+# Never commit credentials, API keys, or secrets to git!
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.cert
+*.pfx
+config/jwt/
+
+# ==========================================
+# Server Logs & Runtime Data
+# ==========================================
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# ==========================================
+# Node.js / Express / NestJS
+# ==========================================
+node_modules/
+jspm_packages/
+.npm
+.eslintcache
+.stylelintcache
+dist/
+build/
+.node_repl_history
+
+# ==========================================
+# Python (Django / Flask / Fastapi)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.htmlcov/
+htmlcov/
+
+# ==========================================
+# Go (Golang)
+# ==========================================
+# Binaries and templates
+bin/
+pkg/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# ==========================================
+# Java / Spring Boot
+# ==========================================
+*.class
+*.target/
+.mtj.tmp/
+*.jar
+*.war
+*.ear
+*.hsperfdata_*
+
+# ==========================================
+# PHP (Laravel / Symfony)
+# ==========================================
+vendor/
+bootstrap/cache/
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+.vagrant/
+
+# ==========================================
+# Databases & Caching (Local development)
+# ==========================================
+*.db
+*.sqlite
+*.sqlite3
+.dump.sql
+dump.rdb
+data/
+db_data/
+
+# ==========================================
+# Docker
+# ==========================================
+# Ignore local overrides if necessary, but keep main Dockerfile
+.dockerignore
+
+# ==========================================
+# OS & IDE Junk
+# ==========================================
+# OSX
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDEs (VS Code, WebStorm, IntelliJ)
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
