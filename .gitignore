@@ -2,6 +2,7 @@
 # Environment Variables & Secrets (CRITICAL)
 # ==========================================
 # Never commit credentials, API keys, or secrets to git!
+.gitignore
 .env
 .env.local
 .env.development.local

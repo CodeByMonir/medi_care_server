@@ -38,6 +38,20 @@ async function run() {
     const database = client.db("MediCare");
     const doctorCollection = database.collection("doctors");
 
+    app.get('/api/doctors', async(req, res) => {
+      const query = {};
+      if(req.query.doctorId){
+        query.doctorId = req.query.doctorId;
+      }
+      if(req.query.verification){
+        query.verification = req.query.verification;
+      }
+
+      const cursor = doctorCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
     app.post('/api/doctors', async(req, res) =>{
         const doctor = req.body;
         const result = await doctorCollection.insertOne(doctor);
