@@ -34,32 +34,42 @@ async function run() {
   try {
     await client.connect();
 
-
     const database = client.db("MediCare");
     const doctorCollection = database.collection("doctors");
 
-    app.get('/api/doctors', async(req, res) => {
+
+    // created for public to visit doctors without login and only verified doctors will visible
+    app.get("/api/doctors", async (req, res) => {
       const query = {};
-      if(req.query.doctorId){
-        query.doctorId = req.query.doctorId;
-      }
-      if(req.query.verification){
+      if (req.query.verification) {
         query.verification = req.query.verification;
       }
 
       const cursor = doctorCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
-    })
-
-    app.post('/api/doctors', async(req, res) =>{
-        const doctor = req.body;
-        const result = await doctorCollection.insertOne(doctor);
-        res.send(result);
-    })
-
-
+    });
     
+
+    // created for doctors verification application.
+    app.post("/api/doctors", async (req, res) => {
+      const doctor = req.body;
+      const result = await doctorCollection.insertOne(doctor);
+      res.send(result);
+    });
+
+
+    // created for doctors so they can see their profile
+    app.get("/api/doctor", async (req, res) => {
+      const query = {};
+      if (req.query.doctorId) {
+        query.doctorId = req.query.doctorId;
+      }
+      const cursor = doctorCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
