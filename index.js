@@ -37,7 +37,6 @@ async function run() {
     const database = client.db("MediCare");
     const doctorCollection = database.collection("doctors");
 
-
     // created for public to visit doctors without login and only verified doctors will visible
     app.get("/api/doctors", async (req, res) => {
       const query = {};
@@ -49,7 +48,17 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-    
+
+    // created for public to visit doctors without login and only verified doctors will visible
+    app.get("/api/doctor", async (req, res) => {
+      const query = {};
+      if (req.query.license) {
+        query.license = req.query.license;
+      }
+      const cursor = doctorCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     // created for doctors verification application.
     app.post("/api/doctors", async (req, res) => {
@@ -57,7 +66,6 @@ async function run() {
       const result = await doctorCollection.insertOne(doctor);
       res.send(result);
     });
-
 
     // created for doctors so they can see their profile
     app.get("/api/doctor", async (req, res) => {
