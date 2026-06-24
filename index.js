@@ -37,6 +37,7 @@ async function run() {
     const database = client.db("MediCare");
     const doctorCollection = database.collection("doctors");
     const appointmentCollection = database.collection("appointments");
+    const paymentCollection = database.collection("payments");
 
     // created for public to visit doctors without login and only verified doctors will visible
     app.get("/api/doctors", async (req, res) => {
@@ -99,6 +100,14 @@ async function run() {
     app.post("/api/appointments", async (req, res) => {
       const doctor = req.body;
       const result = await appointmentCollection.insertOne(appointments);
+      res.send(result);
+    });
+
+
+    // created for payments collections.
+    app.post("/api/payments", async (req, res) => {
+      const doctor = req.body;
+      const result = await paymentCollection.insertOne(payments);
       res.send(result);
     });
 
