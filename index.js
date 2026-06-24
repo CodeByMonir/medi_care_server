@@ -36,6 +36,7 @@ async function run() {
 
     const database = client.db("MediCare");
     const doctorCollection = database.collection("doctors");
+    const appointmentCollection = database.collection("appointments");
 
     // created for public to visit doctors without login and only verified doctors will visible
     app.get("/api/doctors", async (req, res) => {
@@ -68,15 +69,48 @@ async function run() {
     });
 
     // created for doctors so they can see their profile
-    app.get("/api/doctor", async (req, res) => {
-      const query = {};
-      if (req.query.doctorId) {
-        query.doctorId = req.query.doctorId;
-      }
-      const cursor = doctorCollection.find(query);
-      const result = await cursor.toArray();
+    app.get("/api/doctor/:doctorId", async (req, res) => {
+      const doctorId = req.params.doctorId;
+
+      const result = await doctorCollection.findOne({
+        doctorId: doctorId,
+      });
+
       res.send(result);
     });
+
+    // created for doctors so they can update their profile
+    app.patch("/api/doctor/:doctorId", async (req, res) => {
+      const { doctorId } = req.params;
+      const updatedData = req.body;
+
+      const filter = { doctorId };
+
+      const updateDoc = {
+        $set: updatedData,
+      };
+
+      const result = await doctorCollection.updateOne(filter, updateDoc);
+
+      res.send(result);
+    });
+
+    // created for collect appointments.
+    app.post("/api/appointments", async (req, res) => {
+      const doctor = req.body;
+      const result = await appointmentCollection.insertOne(appointments);
+      res.send(result);
+    });
+
+
+
+
+
+
+
+
+
+    // don't know about you broh...
 
     await client.db("admin").command({ ping: 1 });
     console.log(
