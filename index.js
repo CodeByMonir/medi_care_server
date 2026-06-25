@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 const { MongoClient, ServerApiVersion } = require("mongodb");
 require ('dotenv').config();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 
 app.use(cors());
@@ -98,7 +98,7 @@ async function run() {
 
     // created for collect appointments.
     app.post("/api/appointments", async (req, res) => {
-      const doctor = req.body;
+      const appointments = req.body;
       const result = await appointmentCollection.insertOne(appointments);
       res.send(result);
     });
@@ -106,7 +106,7 @@ async function run() {
 
     // created for payments collections.
     app.post("/api/payments", async (req, res) => {
-      const doctor = req.body;
+      const payments = req.body;
       const result = await paymentCollection.insertOne(payments);
       res.send(result);
     });
