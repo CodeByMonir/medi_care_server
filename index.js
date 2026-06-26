@@ -1,26 +1,18 @@
 const express = require("express");
-const cors = require('cors');
+const cors = require("cors");
 const app = express();
 const { MongoClient, ServerApiVersion } = require("mongodb");
-require ('dotenv').config();
-const port =  5000;
-
+require("dotenv").config();
+const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
-
-
-
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-
-
-
 const uri = process.env.MONGO_DB_URI;
-
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -103,21 +95,12 @@ async function run() {
       res.send(result);
     });
 
-
     // created for payments collections.
     app.post("/api/payments", async (req, res) => {
       const payments = req.body;
       const result = await paymentCollection.insertOne(payments);
       res.send(result);
     });
-
-
-
-
-
-
-
-
 
     // don't know about you broh...
 
@@ -126,16 +109,18 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!",
     );
   } finally {
-    
     // await client.close();
   }
 }
 run().catch(console.dir);
 
+// আপনার অন্যান্য রুট (Routes) এখানে থাকবে...
 
+// এই কন্ডিশনটি দিলে Vercel-এ কোনো এরর আসবে না
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
 
-
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+module.exports = app;
