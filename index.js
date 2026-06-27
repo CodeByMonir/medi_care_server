@@ -213,7 +213,33 @@ app.get("/api/reviews", async (req, res) => {
 
     const result = await reviewCollection.deleteOne(query);
     res.send(result);
-  })
+  });
+
+
+  app.patch("/api/reviews", async (req, res) => {
+    try {
+      const targetId = req.query.id || req.query._id;
+
+      const updateFields = req.body;
+
+      const query = { _id: new ObjectId(targetId) };
+
+      const result = await reviewCollection.updateOne(query, {
+        $set: updateFields,
+      });
+
+      if (result.matchedCount === 0) {
+        return res
+          .status(404)
+          .send({ message: "No records found matching the criteria." });
+      }
+
+      res.send(result);
+    } catch (error) {
+      console.error("Backend Error:", error);
+      res.status(500).send({ message: "Server error", error: error.message });
+    }
+  });
 
 // don't know about you broh...
 
