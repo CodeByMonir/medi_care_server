@@ -37,6 +37,7 @@ const doctorCollection = database.collection("doctors");
 const appointmentCollection = database.collection("appointments");
 const paymentCollection = database.collection("payments");
 const reviewCollection = database.collection("reviews");
+const prescriptionCollection = database.collection("prescriptions");
 
 // created for public to visit doctors without login and only verified doctors will visible
 app.get("/api/doctors", async (req, res) => {
@@ -220,6 +221,57 @@ app.patch("/api/reviews", async (req, res) => {
     const query = { _id: new ObjectId(targetId) };
 
     const result = await reviewCollection.updateOne(query, {
+      $set: updateFields,
+    });
+
+    if (result.matchedCount === 0) {
+      return res
+        .status(404)
+        .send({ message: "No records found matching the criteria." });
+    }
+
+    res.send(result);
+  } catch (error) {
+    console.error("Backend Error:", error);
+    res.status(500).send({ message: "Server error", error: error.message });
+  }
+});
+
+
+// created for doctors prescriptionData.
+app.post("/api/prescriptions", async (req, res) => {
+  const data = req.body;
+  const result = await prescriptionCollection.insertOne(data);
+  res.send(result);
+});
+
+
+app.get("/api/prescriptions", async (req, res) => {
+  try {
+    const { sessionId } = req.query;
+
+    let query = {
+      $or: [{ doctorId: sessionId }, { patientId: sessionId }],
+    };
+
+    const result = await prescriptionCollection.find(query).toArray();
+
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ message: "Server error", error });
+  }
+});
+
+
+app.patch("/api/prescriptions", async (req, res) => {
+  try {
+    const targetId = req.query.id || req.query._id;
+
+    const updateFields = req.body;
+
+    const query = { _id: new ObjectId(targetId) };
+
+    const result = await prescriptionCollection.updateOne(query, {
       $set: updateFields,
     });
 
