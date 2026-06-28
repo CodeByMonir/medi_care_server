@@ -188,16 +188,26 @@ app.post("/api/reviews", async (req, res) => {
 
 app.get("/api/reviews", async (req, res) => {
   try {
+    // FIX: Extract the actual string value from the query object
     const { sessionId } = req.query;
 
+    if (!sessionId) {
+      return res
+        .status(400)
+        .send({ message: "sessionId query parameter is required" });
+    }
+
+    // Now the query targets a string value instead of an object
     let query = {
-      $or: [{ doctorId: sessionId }, { patientId: sessionId }]
+      $or: [{ doctorId: sessionId }, { patientId: sessionId }],
     };
 
     const result = await reviewCollection.find(query).toArray();
+    console.log("Database Result:", result); // This will now show your data array!
 
     res.send(result);
   } catch (error) {
+    console.error(error);
     res.status(500).send({ message: "Server error", error });
   }
 });
@@ -250,9 +260,7 @@ app.get("/api/prescriptions", async (req, res) => {
   try {
     const { sessionId } = req.query;
 
-    let query = {
-      $or: [{ doctorId: sessionId }, { patientId: sessionId }],
-    };
+    let query = {$or: [{ doctorId: sessionId }, { patientId: sessionId }] };
 
     const result = await prescriptionCollection.find(query).toArray();
 
