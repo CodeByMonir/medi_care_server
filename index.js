@@ -106,15 +106,11 @@ app.post("/api/appointments", async (req, res) => {
 // URL format: /api/appointments?doctorId=123 OR /api/appointments?patientId=456
 app.get("/api/appointments", async (req, res) => {
   try {
-    const { doctorId, patientId } = req.query;
+    const { sessionId } = req.query;
 
-    let query = {};
-
-    if (doctorId || patientId) {
-      query.$or = [];
-      if (doctorId) query.$or.push({ doctorId: doctorId });
-      if (patientId) query.$or.push({ patientId: patientId });
-    }
+    const query = {
+      $or: [{ doctorId: sessionId }, { patientId: sessionId }],
+    };
 
     const result = await appointmentCollection.find(query).toArray();
 
@@ -122,6 +118,17 @@ app.get("/api/appointments", async (req, res) => {
   } catch (error) {
     res.status(500).send({ message: "Server error", error });
   }
+});
+
+// created for doctors so they can see appointments data
+app.get("/api/appointments/:id", async (req, res) => {
+  const targetId = req.params.id;
+
+  const query = { _id: new ObjectId(targetId) };
+
+  const result = await appointmentCollection.findOne(query);
+
+  res.send(result);
 });
 
 // URL format: PATCH -> /api/appointments?doctorId=123 OR /api/appointments?patientId=456
@@ -159,15 +166,9 @@ app.post("/api/payments", async (req, res) => {
 
 app.get("/api/payments", async (req, res) => {
   try {
-    const { doctorId, patientId } = req.query;
+    const { sessionId } = req.query;
 
-    let query = {};
-
-    if (doctorId || patientId) {
-      query.$or = [];
-      if (doctorId) query.$or.push({ doctorId: doctorId });
-      if (patientId) query.$or.push({ patientId: patientId });
-    }
+    let query = { $or: [{ doctorId: sessionId }, { patientId: sessionId }] };
 
     const result = await paymentCollection.find(query).toArray();
 
@@ -186,15 +187,11 @@ app.post("/api/reviews", async (req, res) => {
 
 app.get("/api/reviews", async (req, res) => {
   try {
-    const { doctorId, patientId } = req.query;
+    const { sessionId } = req.query;
 
-    let query = {};
-
-    if (doctorId || patientId) {
-      query.$or = [];
-      if (doctorId) query.$or.push({ doctorId: doctorId });
-      if (patientId) query.$or.push({ patientId: patientId });
-    }
+    let query = {
+      $or: [{ doctorId: sessionId }, { patientId: sessionId }]
+    };
 
     const result = await reviewCollection.find(query).toArray();
 
@@ -204,42 +201,40 @@ app.get("/api/reviews", async (req, res) => {
   }
 });
 
+app.delete("/api/reviews/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = {
+    _id: new ObjectId(id),
+  };
 
-  app.delete("/api/reviews/:id", async (req, res) => {
-    const id = req.params.id;
-    const query = {
-      _id: new ObjectId(id)
+  const result = await reviewCollection.deleteOne(query);
+  res.send(result);
+});
+
+app.patch("/api/reviews", async (req, res) => {
+  try {
+    const targetId = req.query.id || req.query._id;
+
+    const updateFields = req.body;
+
+    const query = { _id: new ObjectId(targetId) };
+
+    const result = await reviewCollection.updateOne(query, {
+      $set: updateFields,
+    });
+
+    if (result.matchedCount === 0) {
+      return res
+        .status(404)
+        .send({ message: "No records found matching the criteria." });
     }
 
-    const result = await reviewCollection.deleteOne(query);
     res.send(result);
-  });
-
-
-  app.patch("/api/reviews", async (req, res) => {
-    try {
-      const targetId = req.query.id || req.query._id;
-
-      const updateFields = req.body;
-
-      const query = { _id: new ObjectId(targetId) };
-
-      const result = await reviewCollection.updateOne(query, {
-        $set: updateFields,
-      });
-
-      if (result.matchedCount === 0) {
-        return res
-          .status(404)
-          .send({ message: "No records found matching the criteria." });
-      }
-
-      res.send(result);
-    } catch (error) {
-      console.error("Backend Error:", error);
-      res.status(500).send({ message: "Server error", error: error.message });
-    }
-  });
+  } catch (error) {
+    console.error("Backend Error:", error);
+    res.status(500).send({ message: "Server error", error: error.message });
+  }
+});
 
 // don't know about you broh...
 
