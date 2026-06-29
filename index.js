@@ -12,6 +12,15 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
+
+  const logger= (req, res) => {
+    console.log('logger logged', req.params);
+
+    next();
+  }
+
+
+
 const uri = process.env.MONGO_DB_URI;
 
 const client = new MongoClient(uri, {
@@ -47,30 +56,108 @@ app.post("/api/users", async (req, res) => {
   res.send(result);
 });
 
-// created for doctors so they can see their profile
+
+// created for 
 app.get("/api/users", async (req, res) => {
-  const sessionId = req.query.sessionId;
+  try {
+    const sessionId = req.query.sessionId;
 
-  const result = await userCollection.findOne({
-    patientId: sessionId,
-  });
+    if (!sessionId) {
+      return res
+        .status(400)
+        .json({ error: "Session ID parameter is required" });
+    }
 
+    const result = await userCollection.findOne({
+      patientId: sessionId,
+    });
+
+    // CRITICAL: If result is null, send a clear JSON error instead of an empty body
+    if (!result) {
+      return res.status(404).json({ error: "User profile not found" });
+    }
+
+    // Always use res.json() instead of res.send() to guarantee clean JSON formatting
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
+app.delete("/api/users/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = {
+    _id: new ObjectId(id),
+  };
+
+  const result = await userCollection.deleteOne(query);
   res.send(result);
+});
+
+
+
+app.patch("/api/users",  async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    const { role } = req.body;
+
+    if (!userId) {
+      return res.status(400).send({ message: "User ID is required" });
+    }
+
+    const query = { _id: new ObjectId(userId) };
+
+    const result = await userCollection.updateOne(query, {
+      $set: {
+        role: role,
+      },
+    });
+
+    res.send(result);
+  } catch (error) {
+    console.error("Backend Error:", error);
+    res.status(500).send({ message: "Server error", error: error.message });
+  }
 });
 
 // created for public to visits without login
 app.get("/api/users/role", async (req, res) => {
   try {
-    const { role } = req.query;
-
-    const query = { role: role };
-
-    const result = await userCollection.find(query).toArray();
+    const result = await userCollection.find({}).toArray();
 
     res.json(result);
   } catch (error) {
-    console.error(error);
+    console.error("Data fetch failed:", error);
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+app.patch("/api/doctors/verify", async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    const { verification } = req.body;
+
+    if (!userId) {
+      return res.status(400).send({ message: "User ID is required" });
+    }
+
+    const query = { _id: new ObjectId(userId) };
+
+    const result = await doctorCollection.updateOne(query, {
+      $set: {
+        verification: verification,
+      },
+    });
+
+    res.send(result);
+  } catch (error) {
+    console.error("Backend Error:", error);
+    res.status(500).send({ message: "Server error", error: error.message });
   }
 });
 
@@ -102,6 +189,18 @@ app.post("/api/doctors", async (req, res) => {
   const doctor = req.body;
   const result = await doctorCollection.insertOne(doctor);
   res.send(result);
+});
+
+// created for public to visits without login
+app.get("/api/allDoctors", async (req, res) => {
+  try {
+    const result = await doctorCollection.find({}).toArray();
+
+    res.json(result);
+  } catch (error) {
+    console.error("Data fetch failed:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 });
 
 // created for doctors so they can see their profile
@@ -149,7 +248,7 @@ app.get("/api/appointments", async (req, res) => {
     };
 
     const result = await appointmentCollection.find(query).toArray();
-
+    // console.log(result);
     res.send(result);
   } catch (error) {
     res.status(500).send({ message: "Server error", error });
@@ -210,6 +309,17 @@ app.post("/api/payments", async (req, res) => {
   const payments = req.body;
   const result = await paymentCollection.insertOne(payments);
   res.send(result);
+});
+
+app.get("/api/allPayments", async (req, res) => {
+  try {
+    const result = await paymentCollection.find({}).toArray();
+
+    res.json(result);
+  } catch (error) {
+    console.error("Data fetch failed:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 });
 
 app.get("/api/payments", async (req, res) => {
