@@ -33,11 +33,46 @@ client
   .catch(console.dir);
 
 const database = client.db("MediCare");
+const userCollection = database.collection("users");
 const doctorCollection = database.collection("doctors");
 const appointmentCollection = database.collection("appointments");
 const paymentCollection = database.collection("payments");
 const reviewCollection = database.collection("reviews");
 const prescriptionCollection = database.collection("prescriptions");
+
+// created for doctors verification application.
+app.post("/api/users", async (req, res) => {
+  const user = req.body;
+  const result = await userCollection.insertOne(user);
+  res.send(result);
+});
+
+// created for doctors so they can see their profile
+app.get("/api/users", async (req, res) => {
+  const sessionId = req.query.sessionId;
+
+  const result = await userCollection.findOne({
+    patientId: sessionId,
+  });
+
+  res.send(result);
+});
+
+// created for public to visits without login
+app.get("/api/users/role", async (req, res) => {
+  try {
+    const { role } = req.query;
+
+    const query = { role: role };
+
+    const result = await userCollection.find(query).toArray();
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
 
 // created for public to visit doctors without login and only verified doctors will visible
 app.get("/api/doctors", async (req, res) => {
@@ -132,6 +167,18 @@ app.get("/api/appointments/:id", async (req, res) => {
   res.send(result);
 });
 
+// Created for doctors so they can see appointments data
+app.get("/api/allAppointments", async (req, res) => {
+  try {
+    const result = await appointmentCollection.find({}).toArray();
+    
+    res.json(result); 
+  } catch (error) {
+    console.error("Data fetch failed:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 // URL format: PATCH -> /api/appointments?doctorId=123 OR /api/appointments?patientId=456
 app.patch("/api/appointments", async (req, res) => {
   try {
@@ -186,6 +233,18 @@ app.post("/api/reviews", async (req, res) => {
   res.send(result);
 });
 
+
+app.get("/api/allReviews", async (req, res) => {
+  try {
+    const result = await reviewCollection.find({}).toArray();
+
+    res.json(result);
+  } catch (error) {
+    console.error("Data fetch failed:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 app.get("/api/reviews", async (req, res) => {
   try {
     // FIX: Extract the actual string value from the query object
@@ -203,7 +262,7 @@ app.get("/api/reviews", async (req, res) => {
     };
 
     const result = await reviewCollection.find(query).toArray();
-    console.log("Database Result:", result); // This will now show your data array!
+    // console.log("Database Result:", result);
 
     res.send(result);
   } catch (error) {
@@ -247,7 +306,6 @@ app.patch("/api/reviews", async (req, res) => {
   }
 });
 
-
 // created for doctors prescriptionData.
 app.post("/api/prescriptions", async (req, res) => {
   const data = req.body;
@@ -255,12 +313,11 @@ app.post("/api/prescriptions", async (req, res) => {
   res.send(result);
 });
 
-
 app.get("/api/prescriptions", async (req, res) => {
   try {
     const { sessionId } = req.query;
 
-    let query = {$or: [{ doctorId: sessionId }, { patientId: sessionId }] };
+    let query = { $or: [{ doctorId: sessionId }, { patientId: sessionId }] };
 
     const result = await prescriptionCollection.find(query).toArray();
 
@@ -269,7 +326,6 @@ app.get("/api/prescriptions", async (req, res) => {
     res.status(500).send({ message: "Server error", error });
   }
 });
-
 
 app.patch("/api/prescriptions", async (req, res) => {
   try {
